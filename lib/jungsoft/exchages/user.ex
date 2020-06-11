@@ -8,7 +8,8 @@ defmodule Jungsoft.Exchages.User do
   use Ecto.Schema
   import Ecto.Changeset
 
-  @required ~w[name email password]a
+  # For security, maybe is better to create a changeset unic to make admin users
+  @required ~w[name email password role]a
 
   @primary_key {:id, :binary_id, autogenerate: true}
   schema "users" do
@@ -33,7 +34,7 @@ defmodule Jungsoft.Exchages.User do
     |> put_pass_hash()
   end
 
-  defp put_pass_hash(%Ecto.Changeset{valid?: true, changes: %{password: pass}} = changeset) do
+  defp put_pass_hash(changeset = %Ecto.Changeset{valid?: true, changes: %{password: pass}}) do
     put_change(changeset, :password_hash, Argon2.add_hash(pass)[:password_hash])
   end
 

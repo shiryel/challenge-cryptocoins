@@ -1,5 +1,8 @@
 use Mix.Config
 
+config :jungsoft,
+  user_salt: "user auth"
+
 # Configure your database
 config :jungsoft, Jungsoft.Repo,
   username: "postgres",

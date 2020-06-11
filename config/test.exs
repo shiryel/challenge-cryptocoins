@@ -1,5 +1,8 @@
 use Mix.Config
 
+config :jungsoft,
+  user_salt: "user auth"
+
 # Configure your database
 #
 # The MIX_TEST_PARTITION environment variable can be used

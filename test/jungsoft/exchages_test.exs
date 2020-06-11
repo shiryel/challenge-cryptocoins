@@ -40,6 +40,17 @@ defmodule Jungsoft.ExchagesTest do
       assert user_1 == user_2
     end
 
+    test "get_user/1 returns the user" do
+      {:ok, user} = Exchages.create_user(@valid_user)
+      user_1 = Map.delete(user, :password)
+
+      user_2 =
+        Exchages.get_user(user.id)
+        |> Map.delete(:password)
+
+      assert user_1 == user_2
+    end
+
     test "authenticate/2 returns the user when accepted" do
       {:ok, user} = Exchages.create_user(@valid_user)
       user_1 = Map.delete(user, :password)
@@ -83,7 +94,7 @@ defmodule Jungsoft.ExchagesTest do
     test "get_fund_by_name/1 returns the fund" do
       {:ok, fund} = Exchages.create_fund(@valid_fund)
       assert fund == Exchages.get_fund_by_name("dio")
-      
+
       assert nil == Exchages.get_fund_by_name("dio dio")
     end
 
@@ -101,7 +112,7 @@ defmodule Jungsoft.ExchagesTest do
       {:ok, user} = Exchages.create_user(@valid_user)
       {:ok, fund} = Exchages.create_fund(@valid_fund)
 
-      assert [{:ok, _historic}] = Exchages.invest(user, fund, 1)
+      assert Decimal.new(-10) == Exchages.invest(user, fund, 1)
 
       assert Exchages.get_user_profit(user) == Decimal.new(-10)
     end
@@ -110,9 +121,9 @@ defmodule Jungsoft.ExchagesTest do
       {:ok, user} = Exchages.create_user(@valid_user)
       {:ok, fund} = Exchages.create_fund(@valid_fund)
 
-      assert [{:ok, _historic}] = Exchages.invest(user, fund, 1)
+      assert Decimal.new(-10) == Exchages.invest(user, fund, 1)
 
-      assert [{:ok, _historic}] = Exchages.refund(user, fund, 1)
+      assert Decimal.new(0) == Exchages.refund(user, fund, 1)
 
       assert Exchages.get_user_profit(user) == Decimal.new(0)
     end

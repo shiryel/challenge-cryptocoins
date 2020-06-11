@@ -4,15 +4,17 @@ defmodule Jungsoft.Exchages do
   """
 
   import Ecto.Query, warn: false
+  require Logger
   alias Jungsoft.Repo
-
-  alias Jungsoft.Exchages.{Historic, Token, Fund, User}
+  alias Jungsoft.Exchages.{Fund, Historic, Token, User}
 
   ########
   # USER #
   ########
 
   @doc """
+  Create a new user
+
   ## Examples
       iex> create_user(%{name: "DIO", email: "jotaro@hotmail.com", password: "secret"}),
       {:ok, %User{}} 
@@ -28,6 +30,8 @@ defmodule Jungsoft.Exchages do
   end
 
   @doc """
+  List all users
+
   ## Examples
       iex> list_users()
       [%User{}]
@@ -35,6 +39,21 @@ defmodule Jungsoft.Exchages do
   @spec list_users :: [%User{}]
   def list_users do
     Repo.all(User)
+  end
+
+  @doc """
+  Get a user with the ID
+
+  ## Examples
+      iex> get_user(id)
+      %User{}
+
+      iex> get_user(id)
+      nil
+  """
+  @spec get_user(integer()) :: %User{} | nil
+  def get_user(id) do
+    Repo.get(User, id)
   end
 
   @doc """
@@ -111,8 +130,9 @@ defmodule Jungsoft.Exchages do
       iex> update_token_owner(token, owner)
       {:error, %Ecto.Changeset{}}
   """
-  @spec update_token_owner(%Token{}, %User{} | nil) :: {:ok, %Token{}} | {:error, %Ecto.Changeset{}}
-  def update_token_owner(%Token{} = token, owner_id) do
+  @spec update_token_owner(%Token{}, %User{} | nil) ::
+          {:ok, %Token{}} | {:error, %Ecto.Changeset{}}
+  def update_token_owner(token = %Token{}, owner_id) do
     token
     |> Token.changeset(%{current_owner_id: owner_id})
     |> Repo.update()
@@ -138,13 +158,13 @@ defmodule Jungsoft.Exchages do
   def create_fund(attrs \\ %{})
 
   def create_fund(attrs = %{token_amount: token_amount}) when is_integer(token_amount) do
-    with {:ok, fund} <-
-           %Fund{}
-           |> Fund.changeset(attrs)
-           |> Repo.insert() do
-      Enum.each(1..token_amount, fn _ -> create_token(fund) end)
-      {:ok, fund}
-    else
+    case %Fund{}
+         |> Fund.changeset(attrs)
+         |> Repo.insert() do
+      {:ok, fund} ->
+        Enum.each(1..token_amount, fn _ -> create_token(fund) end)
+        {:ok, fund}
+
       {:error, error} ->
         {:error, error}
     end
@@ -165,13 +185,15 @@ defmodule Jungsoft.Exchages do
       {:error, reason}
   """
   @spec update_fund(%Fund{}, map()) :: {:ok, %Fund{}} | {:error, %Ecto.Changeset{}}
-  def update_fund(%Fund{} = fund, attrs \\ %{}) do
+  def update_fund(fund = %Fund{}, attrs \\ %{}) do
     fund
     |> Fund.changeset(attrs)
     |> Repo.update()
   end
 
   @doc """
+  Get a `Fund` by the name
+
   ## Examples
       iex> get_fund_by_name("dio")
       %Fund{}
@@ -188,6 +210,8 @@ defmodule Jungsoft.Exchages do
   end
 
   @doc """
+  List all funds
+
   ## Examples
       iex> list_funds()
       [%Fund{}]
@@ -199,13 +223,13 @@ defmodule Jungsoft.Exchages do
 
   @doc """
   Invest x amount of tokens in a fund from the current user
+  Returns the user current profit
 
   Notes:
   - If the amount is more than the user have, then all tokens will be acounted!
   - The default `token_amount` is 1
   """
-  @spec invest(%User{}, %Fund{}, integer()) ::
-          [{:ok, %Historic{}} | {:error, %Ecto.Changeset{}}]
+  @spec invest(%User{}, %Fund{}, integer()) :: Decimal.t()
   def invest(current_user = %User{}, fund = %Fund{}, token_amount \\ 1) do
     disponible_tokens =
       Repo.all(
@@ -213,33 +237,40 @@ defmodule Jungsoft.Exchages do
       )
 
     tokens = Enum.slice(disponible_tokens, 0, token_amount)
+    Logger.debug("tokens of the transaction: #{inspect(tokens)}")
 
-    Enum.map(tokens, fn token -> create_historic(nil, current_user.id, token, fund.value) end)
+    Enum.each(tokens, fn token -> create_historic(nil, current_user.id, token, fund.value) end)
 
     # get the token from the exchange
-    Enum.map(tokens, fn token -> update_token_owner(token, current_user.id) end)
+    Enum.each(tokens, fn token -> update_token_owner(token, current_user.id) end)
+
+    get_user_profit(current_user)
   end
 
   @doc """
   Refunds x amount of tokens in a fund from the current user
+  Returns the user current profit
 
   Notes: 
   - If the amount is more than the user have, then all tokens will be acounted!
   - The default `token_amount` is 1
   """
-  @spec refund(%User{}, %Fund{}, integer()) ::
-          [{:ok, %Historic{}} | {:error, %Ecto.Changeset{}}]
+  @spec refund(%User{}, %Fund{}, integer()) :: Decimal.t()
   def refund(current_user = %User{}, fund = %Fund{}, token_amount \\ 1) do
     disponible_tokens =
       Repo.all(
-        from t in Token, where: t.fund_id == ^fund.id and t.current_owner_id == ^current_user.id)
+        from t in Token, where: t.fund_id == ^fund.id and t.current_owner_id == ^current_user.id
+      )
 
     tokens = Enum.slice(disponible_tokens, 0, token_amount)
+    Logger.debug("tokens of the transaction: #{inspect(tokens)}")
 
-    Enum.map(tokens, fn token -> create_historic(current_user.id, nil, token, fund.value) end)
+    Enum.each(tokens, fn token -> create_historic(current_user.id, nil, token, fund.value) end)
 
     # send the token back to the exchange
-    Enum.map(tokens, fn token -> update_token_owner(token, nil) end)
+    Enum.each(tokens, fn token -> update_token_owner(token, nil) end)
+
+    get_user_profit(current_user)
   end
 
   ############
@@ -263,8 +294,8 @@ defmodule Jungsoft.Exchages do
       |> Repo.preload(:sell_historics)
       |> Repo.preload(:buy_historics)
 
-    gain = Enum.reduce(user.sell_historics, Decimal.new(0), &(Decimal.add(&1.value, &2)))
-    loss = Enum.reduce(user.buy_historics, Decimal.new(0), &(Decimal.add(&1.value, &2)))
+    gain = Enum.reduce(user.sell_historics, Decimal.new(0), &Decimal.add(&1.value, &2))
+    loss = Enum.reduce(user.buy_historics, Decimal.new(0), &Decimal.add(&1.value, &2))
 
     Decimal.sub(gain, loss)
   end

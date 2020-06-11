@@ -48,5 +48,7 @@ defmodule JungsoftWeb.Endpoint do
   plug Plug.MethodOverride
   plug Plug.Head
   plug Plug.Session, @session_options
+
+  plug JungsoftWeb.Context
   plug JungsoftWeb.Router
 end
