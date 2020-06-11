@@ -12,7 +12,8 @@ GraphQL API on: [`localhost:4000/api`](http://localhost:4000/api)
 - Only loged users can make operations (get, list, invest, refund) on Funds
 - Only admin users can create and update the Funds
 - A Fund is created with a amount of tokens, these tokens will have a owner and can be registred on a historic of transactions to see the user profit later
-- If the exchanger dont have owned tokens on a Fund, then the user cannot invest in this Fund (the default is that all tokens when created is owned by the exchanger)
+- If the exchanger dont have owned tokens on a Fund, then the user cannot invest in this Fund, dont subtracting nothing from the user (the default is that all tokens when created is owned by the exchanger)
+- If the user dont have owned tokens on a Fund, then the user cannot refund in this Fund, dont adding nothing to the user
 - A new admin cannot be created from the API (use the `login(email: "admin@hotmail.com", password: "admin")` from the seeds)
 
 ## Notes
