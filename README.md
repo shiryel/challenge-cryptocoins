@@ -1,4 +1,5 @@
 # Jungsoft
+![Elixir CI](https://github.com/shiryel/jungsoft_test/workflows/Elixir%20CI/badge.svg)
 
 To start your Phoenix server:
 
