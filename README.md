@@ -20,6 +20,7 @@ GraphQL API on: [`localhost:4000/api`](http://localhost:4000/api)
 ## Notes
 - Dont load the seeds.exs on the test ENV, this will broke the tests
 - A web doc can be generated with `mix docs`
+- Code using rules from `mix credo` and `mix dialyzer`
 
 ## Examples
 
