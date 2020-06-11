@@ -9,7 +9,7 @@ To start the server:
 GraphQL API on: [`localhost:4000/api`](http://localhost:4000/api)
 
 ## Assumptions
-- Only loged users can make operations (get, list, invest, refund) on Funds
+- Only loged users can make operations (get, list, invest, refund) on Funds (only on in their name)
 - Only admin users can create and update the Funds
 - A Fund is created with a amount of tokens, these tokens will have a owner and can be registred on a historic of transactions to see the user profit later
 - Funds cannot have the same name
