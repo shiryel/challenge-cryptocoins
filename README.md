@@ -1,4 +1,4 @@
-# Cryptocoins
+# Challenge Cryptocoins
 ![Elixir CI](https://github.com/shiryel/challenge_cryptocoins/workflows/Elixir%20CI/badge.svg)
 
 To start the server:
