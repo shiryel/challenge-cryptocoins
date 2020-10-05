@@ -1,5 +1,5 @@
-# Jungsoft
-![Elixir CI](https://github.com/shiryel/jungsoft_test/workflows/Elixir%20CI/badge.svg)
+# Cryptocoins
+![Elixir CI](https://github.com/shiryel/challenge_cryptocoins/workflows/Elixir%20CI/badge.svg)
 
 To start the server:
   * Install dependencies with `mix deps.get`
